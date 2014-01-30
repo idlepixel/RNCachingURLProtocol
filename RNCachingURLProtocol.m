@@ -78,10 +78,11 @@ static NSSet *RNCachingSupportedSchemes;
 + (BOOL)canInitWithRequest:(NSURLRequest *)request
 {
   // only handle http requests we haven't marked with our header.
-  if ([[self supportedSchemes] containsObject:[[request URL] scheme]] &&
-      ([request valueForHTTPHeaderField:RNCachingURLHeader] == nil))
-  {
-    return YES;
+  if ([[self supportedSchemes] containsObject:[[request URL] scheme]] && ([request valueForHTTPHeaderField:RNCachingURLHeader] == nil)) {
+    NSString *method = [request HTTPMethod];
+    if ([method isEqualToString:@"GET"]) {
+      return YES;
+    }
   }
   return NO;
 }
