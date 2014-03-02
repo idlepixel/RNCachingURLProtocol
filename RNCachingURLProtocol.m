@@ -173,9 +173,9 @@ static NSString *RNCachingCustomCacheDirectoryPath = nil;
   return request;
 }
 
-- (NSString *)cacheDirectoryPath
++ (NSString *)cacheDirectoryPath
 {
-  NSString *path = [[self class] customCacheDirectoryPath];
+  NSString *path = [self customCacheDirectoryPath];
   if (path.length == 0) {
     static NSString *defaultCachesDirectory = nil;
     static dispatch_once_t onceToken;
@@ -190,7 +190,7 @@ static NSString *RNCachingCustomCacheDirectoryPath = nil;
 - (NSString *)cachePathForRequest:(NSURLRequest *)aRequest
 {
   // This stores in the Caches directory, which can be deleted when space is low, but we only use it for offline access
-  NSString *cachesPath = [self cacheDirectoryPath];
+  NSString *cachesPath = [[self class] cacheDirectoryPath];
   NSString *fileName = [[[aRequest URL] absoluteString] sha1];
   
   return [cachesPath stringByAppendingPathComponent:fileName];
