@@ -5,34 +5,34 @@
 	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
 	<false/>
 	<key>IDESourceControlProjectIdentifier</key>
-	<string>EABEA780-0218-46D7-B6F8-90E2869DE2CC</string>
+	<string>BF97CC59-84B1-4139-A8FC-2E841AF8FA45</string>
 	<key>IDESourceControlProjectName</key>
 	<string>CachedWebView</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
-		<key>D5D298D0-A509-4870-A609-743DBC0C2DB3</key>
-		<string>https://github.com/niczyja/RNCachingURLProtocol.git</string>
+		<key>1A5FF631-D762-4189-809D-71FEBEB6E275</key>
+		<string>https://github.com/idlepixel/RNCachingURLProtocol.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
 	<string>CachedWebView.xcodeproj/project.xcworkspace</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
-		<key>D5D298D0-A509-4870-A609-743DBC0C2DB3</key>
+		<key>1A5FF631-D762-4189-809D-71FEBEB6E275</key>
 		<string>../..</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
-	<string>https://github.com/niczyja/RNCachingURLProtocol.git</string>
+	<string>https://github.com/idlepixel/RNCachingURLProtocol.git</string>
 	<key>IDESourceControlProjectVersion</key>
 	<integer>110</integer>
 	<key>IDESourceControlProjectWCCIdentifier</key>
-	<string>D5D298D0-A509-4870-A609-743DBC0C2DB3</string>
+	<string>1A5FF631-D762-4189-809D-71FEBEB6E275</string>
 	<key>IDESourceControlProjectWCConfigurations</key>
 	<array>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.git</string>
 			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>D5D298D0-A509-4870-A609-743DBC0C2DB3</string>
+			<string>1A5FF631-D762-4189-809D-71FEBEB6E275</string>
 			<key>IDESourceControlWCCName</key>
 			<string>RNCachingURLProtocol</string>
 		</dict>

@@ -56,7 +56,9 @@ static NSString *RNCachingURLHeader = @"X-RNCache";
 @end
 
 static NSObject *RNCachingSupportedSchemesMonitor;
-static NSSet *RNCachingSupportedSchemes;
+static NSSet *RNCachingSupportedSchemes = nil;
+static NSSet *RNCachingIncludedHosts = nil;
+static NSSet *RNCachingExcludedHosts = nil;
 
 @implementation RNCachingURLProtocol
 @synthesize connection = connection_;
@@ -73,19 +75,95 @@ static NSSet *RNCachingSupportedSchemes;
     });
         
     [self setSupportedSchemes:[NSSet setWithObject:@"http"]];
+    [self setIncludedHosts:nil];
+    [self setExcludedHosts:nil];
   }
+}
+
++ (NSNumber *)cachingURLProtocolHost:(RNCachingURLProtocolHost *)host containsHostName:(NSString *)hostName
+{
+  hostName = hostName.lowercaseString;
+  if (hostName.length > 0 && host.host.length > 0) {
+    if (host.includeSubDomains) {
+      return @([hostName.lowercaseString hasSuffix:host.host.lowercaseString]);
+    } else {
+      return @([hostName.lowercaseString isEqualToString:host.host.lowercaseString]);
+    }
+  }
+  return nil;
+}
+
++ (NSNumber *)cachingURLProtocolHostSet:(NSSet *)hosts containsHostName:(NSString *)hostName
+{
+  BOOL checked = NO;
+  if (hostName.length > 0 && hosts.count > 0) {
+    for (RNCachingURLProtocolHost *host in hosts) {
+      if ([host isKindOfClass:[NSString class]]) {
+        if ([(NSString *)host compare:hostName options:NSCaseInsensitiveSearch] == NSOrderedSame) {
+          return @(YES);
+        }
+      } else if ([host isKindOfClass:[RNCachingURLProtocolHost class]]) {
+        NSNumber *result = [self cachingURLProtocolHost:host containsHostName:hostName];
+        if (result) {
+          if (result.boolValue) {
+            return @(result.boolValue);
+          } else {
+            checked = YES;
+          }
+        }
+      }
+    }
+  }
+  if (checked) {
+    return @(NO);
+  } else {
+    return nil;
+  }
+}
+
++ (BOOL)canHandleHost:(NSString *)hostName
+{
+  BOOL handle = YES;
+  if (hostName.length > 0) {
+    BOOL found = NO;
+    NSSet *hosts = [self includedHosts];
+    if (hosts.count > 0) {
+      // there is an explicit list of hosts to include, so only matches will be handled
+      handle = NO;
+      NSNumber *result = [self cachingURLProtocolHostSet:hosts containsHostName:hostName];
+      if (result) {
+        found = YES;
+        handle = result.boolValue;
+      }
+    }
+    hosts = [self excludedHosts];
+    if (hosts.count > 0) {
+      // there is an explicit list of hosts to exclude, so any matches will be excluded
+      NSNumber *result = [self cachingURLProtocolHostSet:hosts containsHostName:hostName];
+      if (result) {
+        found = YES;
+        if (result.boolValue) {
+          handle = NO;
+        }
+      }
+    }
+  }
+  return handle;
+
 }
 
 + (BOOL)canInitWithRequest:(NSURLRequest *)request
 {
+  // only handle supported schemes
+  BOOL handle = [[self supportedSchemes] containsObject:[[request URL] scheme]];
+  
   // only handle http requests we haven't marked with our header.
-  if ([[self supportedSchemes] containsObject:[[request URL] scheme]] && ([request valueForHTTPHeaderField:RNCachingURLHeader] == nil)) {
-    NSString *method = [request HTTPMethod];
-    if ([method isEqualToString:@"GET"]) {
-      return YES;
-    }
-  }
-  return NO;
+  if (handle) handle = ([request valueForHTTPHeaderField:RNCachingURLHeader] == nil);
+  
+  // only handle included hosts and exclude any excluded hosts
+  if (handle) handle = [self canHandleHost:[[request URL] host]];
+  
+  return handle;
 }
 
 + (NSURLRequest *)canonicalRequestForRequest:(NSURLRequest *)request
@@ -226,7 +304,8 @@ static NSSet *RNCachingSupportedSchemes;
   }
 }
 
-+ (NSSet *)supportedSchemes {
++ (NSSet *)supportedSchemes
+{
   NSSet *supportedSchemes;
   @synchronized(RNCachingSupportedSchemesMonitor)
   {
@@ -240,6 +319,42 @@ static NSSet *RNCachingSupportedSchemes;
   @synchronized(RNCachingSupportedSchemesMonitor)
   {
     RNCachingSupportedSchemes = supportedSchemes;
+  }
+}
+
++ (NSSet *)includedHosts
+{
+  NSSet *includedHosts;
+  @synchronized(RNCachingSupportedSchemesMonitor)
+  {
+    includedHosts = RNCachingIncludedHosts;
+  }
+  return includedHosts;
+}
+
++ (void)setIncludedHosts:(NSSet *)includedHosts;
+{
+  @synchronized(RNCachingSupportedSchemesMonitor)
+  {
+    RNCachingIncludedHosts = includedHosts;
+  }
+}
+
++ (NSSet *)excludedHosts
+{
+  NSSet *excludedHosts;
+  @synchronized(RNCachingSupportedSchemesMonitor)
+  {
+    excludedHosts = RNCachingExcludedHosts;
+  }
+  return excludedHosts;
+}
+
++ (void)setExcludedHosts:(NSSet *)excludedHosts
+{
+  @synchronized(RNCachingSupportedSchemesMonitor)
+  {
+    RNCachingExcludedHosts = excludedHosts;
   }
 }
 
@@ -288,3 +403,15 @@ static NSString *const kRedirectRequestKey = @"redirectRequest";
 
 @end
 #endif
+
+@implementation RNCachingURLProtocolHost
+
++ (RNCachingURLProtocolHost *)host:(NSString *)host includeSubDomains:(BOOL)includeSubDomains
+{
+  RNCachingURLProtocolHost *h = [RNCachingURLProtocolHost new];
+  h.host = host;
+  h.includeSubDomains = includeSubDomains;
+  return h;
+}
+
+@end

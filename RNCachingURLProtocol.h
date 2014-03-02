@@ -60,7 +60,22 @@
 
 #import <Foundation/Foundation.h>
 
+@interface RNCachingURLProtocolHost : NSObject
+
++ (RNCachingURLProtocolHost *)host:(NSString *)host includeSubDomains:(BOOL)includeSubDomains;
+
+@property (nonatomic, strong) NSString *host;
+@property (nonatomic, assign) BOOL includeSubDomains;
+
+@end
+
 @interface RNCachingURLProtocol : NSURLProtocol
+
++ (NSSet *)includedHosts;
++ (void)setIncludedHosts:(NSSet *)includedHosts;
+
++ (NSSet *)excludedHosts;
++ (void)setExcludedHosts:(NSSet *)excludedHosts;
 
 + (NSSet *)supportedSchemes;
 + (void)setSupportedSchemes:(NSSet *)supportedSchemes;
