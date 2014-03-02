@@ -71,6 +71,9 @@
 
 @interface RNCachingURLProtocol : NSURLProtocol
 
++ (NSString *)customCacheDirectoryPath;
++ (void)setCustomCacheDirectoryPath:(NSString *)customCacheDirectoryPath;
+
 + (NSSet *)includedHosts;
 + (void)setIncludedHosts:(NSSet *)includedHosts;
 

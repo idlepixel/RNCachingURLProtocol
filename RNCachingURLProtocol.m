@@ -60,6 +60,8 @@ static NSSet *RNCachingSupportedSchemes = nil;
 static NSSet *RNCachingIncludedHosts = nil;
 static NSSet *RNCachingExcludedHosts = nil;
 
+static NSString *RNCachingCustomCacheDirectoryPath = nil;
+
 @implementation RNCachingURLProtocol
 @synthesize connection = connection_;
 @synthesize data = data_;
@@ -171,12 +173,26 @@ static NSSet *RNCachingExcludedHosts = nil;
   return request;
 }
 
+- (NSString *)cacheDirectoryPath
+{
+  NSString *path = [[self class] customCacheDirectoryPath];
+  if (path.length == 0) {
+    static NSString *defaultCachesDirectory = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+      defaultCachesDirectory = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) lastObject];
+    });
+    path = defaultCachesDirectory;
+  }
+  return path;
+}
+
 - (NSString *)cachePathForRequest:(NSURLRequest *)aRequest
 {
   // This stores in the Caches directory, which can be deleted when space is low, but we only use it for offline access
-  NSString *cachesPath = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) lastObject];
+  NSString *cachesPath = [self cacheDirectoryPath];
   NSString *fileName = [[[aRequest URL] absoluteString] sha1];
-
+  
   return [cachesPath stringByAppendingPathComponent:fileName];
 }
 
@@ -301,6 +317,24 @@ static NSSet *RNCachingExcludedHosts = nil;
   }
   else {
     [[self data] appendData:newData];
+  }
+}
+
++ (NSString *)customCacheDirectoryPath
+{
+  NSString *customCacheDirectoryPath;
+  @synchronized(RNCachingSupportedSchemesMonitor)
+  {
+    customCacheDirectoryPath = RNCachingCustomCacheDirectoryPath;
+  }
+  return customCacheDirectoryPath;
+}
+
++ (void)setCustomCacheDirectoryPath:(NSString *)customCacheDirectoryPath
+{
+  @synchronized(RNCachingSupportedSchemesMonitor)
+  {
+    RNCachingCustomCacheDirectoryPath = customCacheDirectoryPath;
   }
 }
 
